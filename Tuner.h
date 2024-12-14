@@ -197,13 +197,15 @@ class Tuner {
                 }
             }
 
+	    unsigned improve_count = 0;
             for (unsigned i = 0; i < tunable_parameters_.size(); ++i) {
                 TunableParameter& parameter = tunable_parameters_[i];
                 LocalParameterTuningData& tuning_data = parameter_tuning_data[i];
                 std::cout << parameter.name() << ": " << parameter.value() << " improving "
                           << tuning_data.improving() << "\n";
+		improve_count += tuning_data.improving();
             }
-            std::cout << "Least error: " << least_error << "\n";
+            std::cout << "Least error: " << least_error << ", improvement count: " << improve_count << "\n";
 
             for (LocalParameterTuningData& tune_data : parameter_tuning_data) {
                 if (!tune_data.improving()) {
