@@ -66,7 +66,6 @@ TEST_CASE("Hash Test", "[Position]") {
 
         pos.make_move({E2, E4});
         REQUIRE(pos.hash() != old_hash);
-        REQUIRE(pos.calculate_hash() == 0x823c9b50fd114196ll);
         REQUIRE(pos.hash() == pos.calculate_hash());
 	REQUIRE(pos.side_to_move() == BLACK);
         pos.unmake_move();
@@ -84,6 +83,36 @@ TEST_CASE("Hash Test", "[Position]") {
         pos.make_move({C6, B8});
         REQUIRE(pos.hash() == old_hash);
         REQUIRE(pos.hash() == pos.calculate_hash());
+    }
+    {
+        Position pos{ "rnbqkbnr/ppp3pp/4p3/3p1p2/3P1P2/4P3/PPP3PP/RNBQKBNR w KQkq - 0 1" };
+	std::vector<std::pair<Move, uint64_t> > tests {
+		{ { F1, B5 }, 0x8799e11e657c04dall },
+		{ { F8, B4 }, 0x4ed888182e8bccf8ll },
+		{ { D1, D3 }, 0xeebf24d481c95d8fll },
+	};
+	for(auto & p: tests) {
+		pos.make_move(p.first);
+		REQUIRE(pos.hash() == pos.calculate_hash());
+		REQUIRE(pos.calculate_hash() == p.second);
+	}
+    }
+    {
+        Position pos{STARTPOS_FEN};
+	std::vector<std::pair<Move, uint64_t> > tests {
+		{ { E2, E4 }, 0x823c9b50fd114196ll },
+		{ { D7, D5 }, 0x0756b94461c50fb0ll },
+		{ { E4, E5 }, 0x662fafb965db29d4ll },
+		{ { F7, F5 }, 0x22a48b5a8e47ff78ll },
+		{ { E1, E2 }, 0x652a607ca3f242c1ll },
+		{ { E8, F7 }, 0x00fdd303c946bdd9ll }
+	};
+	for(auto & p: tests) {
+		pos.make_move(p.first);
+		printf("%s\n", p.first.to_str().c_str());
+		REQUIRE(pos.hash() == pos.calculate_hash());
+		REQUIRE(pos.calculate_hash() == p.second);
+	}
     }
     {
         Position pos{STARTPOS_FEN};
