@@ -128,22 +128,31 @@ class Position {
     static std::optional<Position> from_uci_position_line(const std::string& line);
 
     std::uint64_t zobrist_enpassant_key(Square square) {
-	Color sq_c = side_to_move();
+        int file = square.file();  // x
+        int rank = square.rank();  // y
+        int hunter_rank = rank == 5 ? 4 : 3;  // Ex/Dx
+	int hunted_index = file + hunter_rank * 8;
+	// determine color of EP piece
+        Color hunted = color_of(Square{hunted_index}).value();
 
-        if (square.file() && piece_on(Square{square + 7}).has_value()) {
-            auto piece = piece_on(Square{square + 7}).value();
-	    if (piece.color() == sq_c && piece.type() == constants::PAWN)
+        int left_index = hunted_index - 1;
+        int right_index = hunted_index + 1;
+
+        if (file > 0) {
+            auto piece = piece_on(Square{left_index});
+            if (piece.has_value() && piece.value().color() != hunted && piece.value().type() == constants::PAWN)
                 return zobrist::enpassant_key(square);
         }
 
-        if (square.file() < 7 && piece_on(Square{square + 9}).has_value()) {
-            auto piece = piece_on(Square{square + 9}).value();
-	    if (piece.color() == sq_c && piece.type() == constants::PAWN)
+        if (file < 7) {
+            auto piece = piece_on(Square{right_index});
+            if (piece.has_value() && piece.value().color() != hunted && piece.value().type() == constants::PAWN)
                 return zobrist::enpassant_key(square);
         }
 
         return 0;
     }
+
 
     hash_type calculate_hash() {
         hash_type hash_value = 0;
@@ -183,6 +192,7 @@ class Position {
     struct State {
         CastlingRights castling_rights_;
         std::optional<Square> enpassant_square_;
+        std::optional<std::uint64_t> zobrist_undo;
         std::optional<Move> previous_move_;
         std::optional<PieceType> captured_pt_;
         Move::Type move_type_ = Move::Type::NONE;

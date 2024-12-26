@@ -36,6 +36,7 @@ TEST_CASE("Null Move Test", "[Position]") {
 
 TEST_CASE("Hash Test", "[Position]") {
     {
+	// basic sanity checks
 	REQUIRE(A1 == 0);
 	REQUIRE(E5 == 36);
 	REQUIRE(H8 == 63);
@@ -44,12 +45,43 @@ TEST_CASE("Hash Test", "[Position]") {
 	REQUIRE(WHITE.value() == 0);
 	REQUIRE(BLACK.value() == 1);
 	REQUIRE(zobrist::side_to_move_key() != 0);
-
+    }
+    // en-passant with same color pieces on the side (white)
+    {
+        libchess::Position pos{ "rnbqkbnr/pppppppp/8/8/3PPP2/8/PPP3PP/RNBQKBNR w KQkq - 0 1" };
+        REQUIRE(pos.zobrist_enpassant_key(libchess::constants::E3) == 0);
+    }
+    // en-passant with same color pieces on the side (black)
+    {
+        libchess::Position pos{ "rnbqkbnr/ppp3pp/8/3ppp2/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" };
+        REQUIRE(pos.zobrist_enpassant_key(libchess::constants::D6) == 0);
+    }
+    {
+	// en-passant (without history), e2e4 with opponent on d4
 	Position pos{ "rnbqkbnr/ppp1pppp/8/8/3pP3/PPP5/3P1PPP/RNBQKBNR b KQkq e3 0 1" };
 	REQUIRE(pos.hash() == 0xe33c19b44bb1087cll);
         REQUIRE(pos.hash() == pos.calculate_hash());
     }
     {
+	// no en-passant (without history), e2e4
+	Position pos{ "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1" };
+	REQUIRE(pos.hash() == 0x7aeabdfa5236c49fll);
+        REQUIRE(pos.hash() == pos.calculate_hash());
+    }
+    {
+	// no en-passant, e2e4 with own color on the side
+	Position pos{ "rnbqkbnr/pppppppp/8/8/3PPP2/8/PPP3PP/RNBQKBNR w KQkq - 0 1" };
+	REQUIRE(pos.hash() == 0x42c9ef5d5a6ed454ll);
+        REQUIRE(pos.hash() == pos.calculate_hash());
+    }
+    {
+        // no en-passant
+	Position pos{ "rnbqkbnr/pppp1ppp/3P1P2/4p3/8/8/PPP1P1PP/RNBQKBNR w KQkq - 0 1" };
+	REQUIRE(pos.hash() == 0xdbe62744792e27fdll);
+        REQUIRE(pos.hash() == pos.calculate_hash());
+    }
+    {
+	// basic start position
         Position pos{STARTPOS_FEN};
         Position::hash_type old_hash = pos.hash();
         REQUIRE(old_hash == 0x463b96181691fc9cll);
@@ -98,10 +130,16 @@ TEST_CASE("Hash Test", "[Position]") {
 	}
     }
     {
+	// e2e4, d7d5
+	Position pos{ "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1" };
+	REQUIRE(pos.calculate_hash() == 0x0756b94461c50fb0ll);
+        REQUIRE(pos.hash() == pos.calculate_hash());
+    }
+    {
         Position pos{STARTPOS_FEN};
 	std::vector<std::pair<Move, uint64_t> > tests {
 		{ { E2, E4 }, 0x823c9b50fd114196ll },
-		{ { D7, D5 }, 0x0756b94461c50fb0ll },
+		{ { D7, D5 }, 0x0756b94461c50fb0ll },  // rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1
 		{ { E4, E5 }, 0x662fafb965db29d4ll },
 		{ { F7, F5 }, 0x22a48b5a8e47ff78ll },
 		{ { E1, E2 }, 0x652a607ca3f242c1ll },
@@ -109,11 +147,11 @@ TEST_CASE("Hash Test", "[Position]") {
 	};
 	for(auto & p: tests) {
 		pos.make_move(p.first);
-		printf("%s\n", p.first.to_str().c_str());
-		REQUIRE(pos.hash() == pos.calculate_hash());
 		REQUIRE(pos.calculate_hash() == p.second);
+		REQUIRE(pos.hash() == pos.calculate_hash());
 	}
     }
+    // castling rights
     {
         Position pos{STARTPOS_FEN};
         Position::hash_type old_hash_a = pos.hash();
@@ -204,13 +242,13 @@ TEST_CASE("FEN Test", "[Position]") {
 }
 
 TEST_CASE("Flip Test", "[Position]") {
-    Position pos{"rnbqkbnr/ppppppp1/8/7p/8/8/PPPPPPPP/RNBQKBN1 w Qkq h7 0 1"};
+    Position pos{"rnbqkbnr/ppppppp1/8/7p/8/8/PPPPPPPP/RNBQKBN1 w Qkq h6 0 1"};
 
     pos.vflip();
-    REQUIRE(pos.fen() == "rnbqkbn1/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQq h2 0 1");
+    REQUIRE(pos.fen() == "rnbqkbn1/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQq h3 0 1");
 
     pos.vflip();
-    REQUIRE(pos.fen() == "rnbqkbnr/ppppppp1/8/7p/8/8/PPPPPPPP/RNBQKBN1 w Qkq h7 0 1");
+    REQUIRE(pos.fen() == "rnbqkbnr/ppppppp1/8/7p/8/8/PPPPPPPP/RNBQKBN1 w Qkq h6 0 1");
 }
 
 TEST_CASE("UCI Position Line Test", "[Position]") {
