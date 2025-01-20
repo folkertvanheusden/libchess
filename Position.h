@@ -35,6 +35,7 @@ class Position {
     explicit Position(const std::string& fen_str) : Position() {
         *this = *Position::from_fen(fen_str);
     }
+    virtual ~Position() { }
     using hash_type = std::uint64_t;
 
     enum class GameState
@@ -76,9 +77,9 @@ class Position {
     bool is_promotion_move(Move move) const;
     bool is_legal_move(Move move) const;
     bool is_legal_generated_move(Move move) const;
-    void unmake_move();
-    void make_move(Move move);
-    void make_null_move();
+    virtual void unmake_move();
+    virtual void make_move(Move move);
+    virtual void make_null_move();
 
     // Attacks
     Bitboard checkers_to(Color c) const;
