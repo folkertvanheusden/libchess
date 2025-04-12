@@ -73,7 +73,7 @@ class Move {
             }
             return Move{*from, *to, *promotion_pt};
         }
-        return Move{*from, *to, Move::Type::NORMAL};
+        return Move{*from, *to};
     }
 
     std::string to_str() const {
