@@ -240,7 +240,7 @@ inline void Position::make_move(Move move) {
     next_state.captured_pt_ = captured_pt;
     next_state.move_type_ = move_type;
     reverse_side_to_move();
-    if (calc_hash)
+    if (calc_hash || prev_state.enpassant_square_.has_value())
         next_state.hash_ = calculate_hash();
     else {
         if (prev_state.enpassant_square_.has_value()) {
