@@ -158,11 +158,19 @@ inline void Position::make_move(Move move) {
 
     bool calc_hash = true;
 
+    next_state.hash_ = prev_state.hash_;
+    if (prev_state.enpassant_square_.has_value()) {
+        Bitboard ep_candidates = piece_type_bb(constants::PAWN) & color_bb(stm) &
+            lookups::pawn_attacks(*prev_state.enpassant_square_, !stm);
+        if (ep_candidates) {
+		    next_state.hash_ ^= zobrist::enpassant_key(*prev_state.enpassant_square_);
+        }
+    }
+
     switch (move_type) {
         case Move::Type::NORMAL:
             move_piece(from_square, to_square, *moving_pt, stm);
             calc_hash = false;
-            next_state.hash_ = prev_state.hash_;
             next_state.hash_ ^= zobrist::piece_square_key(from_square, *moving_pt, stm);
             next_state.hash_ ^= zobrist::piece_square_key(to_square, *moving_pt, stm);
             break;
@@ -170,7 +178,6 @@ inline void Position::make_move(Move move) {
             remove_piece(to_square, *captured_pt, !stm);
             move_piece(from_square, to_square, *moving_pt, stm);
             calc_hash = false;
-            next_state.hash_ = prev_state.hash_;
             next_state.hash_ ^= zobrist::piece_square_key(to_square, *captured_pt, !stm);
             next_state.hash_ ^= zobrist::piece_square_key(from_square, *moving_pt, stm);
             next_state.hash_ ^= zobrist::piece_square_key(to_square, *moving_pt, stm);
@@ -178,7 +185,6 @@ inline void Position::make_move(Move move) {
         case Move::Type::DOUBLE_PUSH:
             move_piece(from_square, to_square, constants::PAWN, stm);
             calc_hash = false;
-            next_state.hash_ = prev_state.hash_;
             {
                 next_state.enpassant_square_ =
                     stm == constants::WHITE ? Square(from_square + 8) : Square(from_square - 8);
@@ -220,7 +226,6 @@ inline void Position::make_move(Move move) {
             remove_piece(from_square, constants::PAWN, stm);
             put_piece(to_square, *promotion_pt, stm);
 	    calc_hash = false;
-            next_state.hash_ = prev_state.hash_;
             next_state.hash_ ^= zobrist::piece_square_key(from_square, constants::PAWN, stm);
             next_state.hash_ ^= zobrist::piece_square_key(to_square, *promotion_pt, stm);
             break;
@@ -229,7 +234,6 @@ inline void Position::make_move(Move move) {
             remove_piece(from_square, constants::PAWN, stm);
             put_piece(to_square, *promotion_pt, stm);
 	    calc_hash = false;
-            next_state.hash_ = prev_state.hash_;
             next_state.hash_ ^= zobrist::piece_square_key(to_square, *captured_pt, !stm);
             next_state.hash_ ^= zobrist::piece_square_key(from_square, constants::PAWN, stm);
             next_state.hash_ ^= zobrist::piece_square_key(to_square, *promotion_pt, stm);
@@ -243,14 +247,6 @@ inline void Position::make_move(Move move) {
     if (calc_hash)
         next_state.hash_ = calculate_hash();
     else {
-        if (prev_state.enpassant_square_.has_value()) {
-	    Bitboard ep_candidates = piece_type_bb(constants::PAWN) & color_bb(!stm) &
-		    lookups::pawn_attacks(*prev_state.enpassant_square_, stm);
-	    if (ep_candidates) {
-		    next_state.hash_ ^= zobrist::enpassant_key(*prev_state.enpassant_square_);
-	    }
-	}
-
         next_state.hash_ ^= zobrist::side_to_move_key();
         next_state.hash_ ^= zobrist::castling_rights_key(prev_state.castling_rights_);
         next_state.hash_ ^= zobrist::castling_rights_key(next_state.castling_rights_);
