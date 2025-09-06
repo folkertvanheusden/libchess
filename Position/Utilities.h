@@ -124,7 +124,6 @@ inline void Position::vflip() {
     side_to_move_ = !side_to_move_;
 
     state_mut_ref().hash_ = calculate_hash();
-    state_mut_ref().pawn_hash_ = calculate_pawn_hash();
 }
 
 inline std::optional<Move> Position::smallest_capture_move_to(Square square) const {
@@ -246,7 +245,6 @@ inline std::optional<Position> Position::from_fen(const std::string& fen) {
     pos.fullmoves_ = std::strtol(fen_part_cstr, &end, 10);
 
     pos.state_mut_ref().hash_ = pos.calculate_hash();
-    pos.state_mut_ref().pawn_hash_ = pos.calculate_pawn_hash();
     pos.start_fen_ = fen;
     return pos;
 }

@@ -251,7 +251,6 @@ inline void Position::make_move(Move move) {
         next_state.hash_ ^= zobrist::castling_rights_key(prev_state.castling_rights_);
         next_state.hash_ ^= zobrist::castling_rights_key(next_state.castling_rights_);
     }
-    next_state.pawn_hash_ = calculate_pawn_hash();
 }
 
 inline void Position::make_null_move() {
@@ -276,7 +275,6 @@ inline void Position::make_null_move() {
     }
     next.hash_ ^= zobrist::side_to_move_key();
     next.enpassant_square_ = {};
-    next.pawn_hash_ = calculate_pawn_hash();
 }
 
 }  // namespace libchess

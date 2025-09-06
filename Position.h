@@ -60,7 +60,6 @@ class Position {
     std::optional<Color> color_of(Square square) const;
     std::optional<Piece> piece_on(Square square) const;
     hash_type hash() const;
-    hash_type pawn_hash() const;
     Square king_square(Color color) const;
     int halfmoves() const;
     int fullmoves() const;
@@ -201,7 +200,6 @@ class Position {
         std::optional<PieceType> captured_pt_;
         Move::Type move_type_ = Move::Type::NONE;
         hash_type hash_ = 0;
-        hash_type pawn_hash_ = 0;
         int halfmoves_ = 0;
     };
 
@@ -222,17 +220,6 @@ class Position {
     }
     const State& state(int ply) const {
         return history_[ply];
-    }
-    hash_type calculate_pawn_hash() const {
-        hash_type hash_value = 0;
-        for (Color c : constants::COLORS) {
-            Bitboard bb = piece_type_bb(constants::PAWN, c);
-            while (bb) {
-                hash_value ^= zobrist::piece_square_key(bb.forward_bitscan(), constants::PAWN, c);
-                bb.forward_popbit();
-            }
-        }
-        return hash_value;
     }
 
     void put_piece(Square square, PieceType piece_type, Color color) {
