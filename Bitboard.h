@@ -1,6 +1,7 @@
 #ifndef LIBCHESS_BITBOARD_H
 #define LIBCHESS_BITBOARD_H
 
+#include <bit>
 #include <cstdint>
 #include <iostream>
 #include <optional>
@@ -97,13 +98,13 @@ class Bitboard {
         return *this;
     }
     constexpr int popcount() const {
-        return __builtin_popcountll(value_);
+        return std::popcount(value_);
     }
     constexpr Square forward_bitscan() const {
-        return Square{__builtin_ctzll(value_)};
+        return Square{std::countr_zero(value_)};
     }
     constexpr Square reverse_bitscan() const {
-        return Square{63 - __builtin_clzll(value_)};
+        return Square{63 - std::countl_zero(value_)};
     }
     constexpr void forward_popbit() {
         value_ &= value_ - 1;
