@@ -152,15 +152,12 @@ class MoveList {
     }
     void add(const MoveList& move_list) noexcept {
         values_.reserve(size() + move_list.size());
-        for (auto iter = move_list.cbegin(); iter != move_list.cend(); ++iter) {
-            add(*iter);
-        }
+	std::copy(move_list.cbegin(), move_list.cend(), values_.end());
     }
     template <class F>
     void sort(F move_evaluator) {
         auto& moves = values_mut_ref();
-        std::vector<int> scores;
-        scores.resize(values_.size());
+        std::vector<int> scores(values_.size());
         for (int i = 0; i < size(); ++i) {
             scores[i] = move_evaluator(moves[i]);
         }
