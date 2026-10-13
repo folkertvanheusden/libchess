@@ -151,8 +151,9 @@ class MoveList {
         values_.push_back(move);
     }
     void add(const MoveList& move_list) noexcept {
-        values_.reserve(size() + move_list.size());
-	std::copy(move_list.cbegin(), move_list.cend(), values_.end());
+	auto s = size();
+        values_.resize(s + move_list.size());
+	std::copy(move_list.cbegin(), move_list.cend(), values_.begin() + s);
     }
     template <class F>
     void sort(F move_evaluator) {
